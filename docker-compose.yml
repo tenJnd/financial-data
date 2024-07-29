@@ -8,7 +8,7 @@ services:
     volumes:
       - trading-data-volume:/app/trading_data
     entrypoint: ["python"]
-    command: ["src/main.py", "trade"]
+    command: ["src/cli.py", "financial-data"]
 
 volumes:
   trading-data-volume:

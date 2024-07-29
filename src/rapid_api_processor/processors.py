@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 
-from processor_base import BaseProcessor
+from src.rapid_api_processor.processor_base import BaseProcessor
 
 
 class MboumScreener(BaseProcessor):

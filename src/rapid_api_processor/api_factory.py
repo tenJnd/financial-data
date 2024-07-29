@@ -1,4 +1,4 @@
-from processors import MboumScreener, FearGreedIndex
+from src.rapid_api_processor.processors import MboumScreener, FearGreedIndex
 
 
 class ApiFactory:
