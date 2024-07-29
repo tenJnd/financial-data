@@ -1,0 +1,6 @@
+pandas
+requests
+sqlalchemy
+yfinance
+requests_html
+click

@@ -1,0 +1,14 @@
+version: "3"
+services:
+  trading-bot:
+    image: tenjnd/financial-data:latest
+    env_file:
+      - .env
+    network_mode: "host"
+    volumes:
+      - trading-data-volume:/app/trading_data
+    entrypoint: ["python"]
+    command: ["src/main.py", "trade"]
+
+volumes:
+  trading-data-volume:
