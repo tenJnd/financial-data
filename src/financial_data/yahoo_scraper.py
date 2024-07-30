@@ -15,7 +15,7 @@ _logger.setLevel(logging.DEBUG)
 logging.getLogger('database_tools.lightning_uploader').setLevel(logging.WARNING)
 
 SCHEMA = 'financial_data'
-REQUIRED_COLUMNS_MAGIC = ['enterprise_value', 'ebit', 'working_capital', 'net_tangible_assets', 'ticker']
+REQUIRED_COLUMNS_MAGIC = ['ticker', 'sector_key', 'enterprise_value', 'ebit', 'working_capital', 'net_tangible_assets']
 REQUIRED_COLUMNS_GRAHAM = ['trailing_eps', 'book_value', 'current_price']
 REQUIRED_COLUMNS_LYNCH = ['earnings_growth', 'trailing_eps', 'current_price']
 
@@ -299,12 +299,16 @@ def calculate_and_save_magic_formula(df):
     df['earnings_yield_rank'] = df['earnings_yield'].rank(ascending=False)
     df['return_on_capital_rank'] = df['return_on_capital'].rank(ascending=False)
 
+    df[f'earnings_yield_rank_sector'] = df.groupby('sector_key')['return_on_capital'].rank(ascending=False)
+    df[f'return_on_capital_rank_sector'] = df.groupby('sector_key')['return_on_capital'].rank(ascending=False)
+
     # Sum the ranks to get the total rank
     df['total_rank'] = df['earnings_yield_rank'] + df['return_on_capital_rank']
+    df['total_sector_rank'] = df['earnings_yield_rank_sector'] + df['return_on_capital_rank_sector']
 
-    df = df[['ticker', 'earnings_yield', 'return_on_capital',
+    df = df[['ticker', 'sector_key', 'earnings_yield', 'return_on_capital',
              'earnings_yield_rank', 'return_on_capital_rank',
-             'total_rank']]
+             'total_rank', 'total_sector_rank']]
 
     df['timestamp_generated'] = timestamp
 
