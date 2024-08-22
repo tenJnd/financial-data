@@ -52,14 +52,14 @@ class YahooData:
     def __init__(self, ticker):
         self.ticker = ticker
         session = requests_cache.CachedSession('yfinance.cache')
-        session.headers['User-agent'] = 'my-program/1.0'
+        session.headers['User-agent'] = 'financial-data/1.0'
         self.ticker_data = yf.Ticker(ticker, session=session)
 
     def adjust_api_result(self, api_result, last_date_only):
+        result = api_result.copy()
         if last_date_only:
-            result = api_result.iloc[:1]
-        else:
-            result = api_result
+            result = result.iloc[:1]
+
         result['ticker'] = self.ticker
         result.reset_index(inplace=True)
         result.rename(columns={'index': 'date'}, inplace=True)
