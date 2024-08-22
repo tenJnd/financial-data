@@ -5,6 +5,7 @@ from typing import List
 
 import pandas as pd
 import pandas.io.sql as sqlio
+import requests_cache
 import yfinance as yf
 from database_tools.lightning_uploader import LightningUploader
 
@@ -50,37 +51,31 @@ def normalize_column_names(df):
 class YahooData:
     def __init__(self, ticker):
         self.ticker = ticker
-        self.ticker_data = yf.Ticker(ticker)
+        session = requests_cache.CachedSession('yfinance.cache')
+        session.headers['User-agent'] = 'my-program/1.0'
+        self.ticker_data = yf.Ticker(ticker, session=session)
+
+    def adjust_api_result(self, api_result, last_date_only):
+        if last_date_only:
+            result = api_result.iloc[:1]
+        else:
+            result = api_result
+        result['ticker'] = self.ticker
+        result.reset_index(inplace=True)
+        result.rename(columns={'index': 'date'}, inplace=True)
+        return normalize_column_names(result)
 
     def fetch_balance_sheet(self, last_date_only=False):
         balance_sheet = self.ticker_data.balance_sheet.transpose()
-        if last_date_only:
-            balance_sheet = balance_sheet.iloc[:1]
-        balance_sheet['ticker'] = self.ticker
-        balance_sheet.reset_index(inplace=True)
-        balance_sheet.rename(columns={'index': 'date'}, inplace=True)
-        balance_sheet = normalize_column_names(balance_sheet)
-        return balance_sheet
+        return self.adjust_api_result(balance_sheet, last_date_only)
 
     def fetch_financials(self, last_date_only=False):
         financials = self.ticker_data.financials.transpose()
-        if last_date_only:
-            financials = financials.iloc[:1]
-        financials['ticker'] = self.ticker
-        financials.reset_index(inplace=True)
-        financials.rename(columns={'index': 'date'}, inplace=True)
-        financials = normalize_column_names(financials)
-        return financials
+        return self.adjust_api_result(financials, last_date_only)
 
     def fetch_cash_flow(self, last_date_only=False):
         cash_flow = self.ticker_data.cashflow.transpose()
-        if last_date_only:
-            cash_flow = cash_flow.iloc[:1]
-        cash_flow['ticker'] = self.ticker
-        cash_flow.reset_index(inplace=True)
-        cash_flow.rename(columns={'index': 'date'}, inplace=True)
-        cash_flow = normalize_column_names(cash_flow)
-        return cash_flow
+        return self.adjust_api_result(cash_flow, last_date_only)
 
     def fetch_info_table(self):
         info = self.ticker_data.info
