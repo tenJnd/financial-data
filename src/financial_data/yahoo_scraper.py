@@ -225,23 +225,22 @@ def upload_table(table, df):
 def refresh_views(tables_list):
     for table in tables_list:
         _logger.info(f"Refreshing mat. view {table}")
-        sql = f"""
-        create materialized view if not exists {SCHEMA}.{table}_latest as 
-        SELECT t1.*
-        FROM {SCHEMA}.{table} t1
-        INNER JOIN (
-            SELECT
-                ticker,
-                MAX(timestamp_generated) AS max_timestamp
-            FROM
-                {SCHEMA}.{table}
-            GROUP BY
-                ticker
-        ) t2 ON t1.ticker = t2.ticker AND t1.timestamp_generated = t2.max_timestamp;
-
-        refresh materialized view {SCHEMA}.{table}_latest;
+        sql_create = f"""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS {SCHEMA}.{table}_latest AS 
+        SELECT DISTINCT ON (ticker) *
+        FROM {SCHEMA}.{table}
+        ORDER BY ticker, timestamp_generated DESC;
         """
-        database.execute_sql(sql)
+
+        sql_refresh = f"""
+        REFRESH MATERIALIZED VIEW {SCHEMA}.{table}_latest;
+        """
+
+        # Create the materialized view if it doesn't exist
+        database.execute_sql(sql_create)
+
+        # Refresh the materialized view
+        database.execute_sql(sql_refresh)
 
 
 def load_financial_data_for_indicators():
