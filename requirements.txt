@@ -1,7 +1,9 @@
 pandas==2.2.2
-lxml==5.2.2
+lxml
 numpy==2.0.0
-requests
+requests==2.32.3
+requests-cache==1.2.1
+pyrate-limiter==2.10.0
 sqlalchemy==2.0.31
 yfinance==0.2.41
 beautifulsoup4==4.12.2
