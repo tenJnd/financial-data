@@ -4,9 +4,10 @@ import click
 from jnd_utils.log import init_logging
 
 from config import FINANCIAL_DATA_SCREENER_FILTERS, FINANCIAL_DATA_SCREENER_ORDER
-from src.financial_data.finviz_screener import fetch_view_data
-from src.financial_data.yahoo_scraper import fetch_and_save_tickers_data, calculate_and_save_indicators
+from src.financial_data.stocks_screener import fetch_view_data
+from src.financial_data.stocks_financial_data import fetch_and_save_tickers_data, calculate_and_save_indicators
 from src.rapid_api_processor.api_factory import ObjectProcessor
+
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

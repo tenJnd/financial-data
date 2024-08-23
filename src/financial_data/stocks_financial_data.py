@@ -1,14 +1,12 @@
 import logging
-import re
 from datetime import datetime
 from typing import List
 
 import pandas as pd
 import pandas.io.sql as sqlio
-import requests_cache
-import yfinance as yf
 from database_tools.lightning_uploader import LightningUploader
 
+from src.api_adapters.yahoo import YahooData
 from src.database import database
 
 _logger = logging.getLogger(__name__)
@@ -31,78 +29,6 @@ class Tables:
     MAGIC_FORMULA = 'magic_formula'
 
     tables_list = [value for key, value in vars().items() if not key.startswith('__') and not callable(value)]
-
-
-def to_snake_case(s):
-    # Replace spaces with underscores only if followed by an uppercase letter and a lowercase letter
-    s = re.sub(r'(?<=\w) (?=[A-Z][a-z])', '_', s)
-    # Replace sequences of uppercase letters followed by lowercase letters correctly
-    s = re.sub(r'(?<!^)(?<!_)(?=[A-Z][a-z])', '_', s)
-    s = re.sub(r'[^a-zA-Z0-9]', '_', s)
-    return s.lower()
-
-
-def normalize_column_names(df):
-    normalized_columns = [to_snake_case(col) for col in df.columns]
-    df.columns = normalized_columns
-    return df
-
-
-class YahooData:
-    def __init__(self, ticker):
-        self.ticker = ticker
-        session = requests_cache.CachedSession('yfinance.cache')
-        session.headers['User-agent'] = 'financial-data/1.0'
-        self.ticker_data = yf.Ticker(ticker, session=session)
-
-    def adjust_api_result(self, api_result, last_date_only):
-        result = api_result.copy()
-        if last_date_only:
-            result = result.iloc[:1]
-
-        result['ticker'] = self.ticker
-        result.reset_index(inplace=True)
-        result.rename(columns={'index': 'date'}, inplace=True)
-        return normalize_column_names(result)
-
-    def fetch_balance_sheet(self, last_date_only=False):
-        balance_sheet = self.ticker_data.balance_sheet.transpose()
-        return self.adjust_api_result(balance_sheet, last_date_only)
-
-    def fetch_financials(self, last_date_only=False):
-        financials = self.ticker_data.financials.transpose()
-        return self.adjust_api_result(financials, last_date_only)
-
-    def fetch_cash_flow(self, last_date_only=False):
-        cash_flow = self.ticker_data.cashflow.transpose()
-        return self.adjust_api_result(cash_flow, last_date_only)
-
-    def fetch_info_table(self):
-        info = self.ticker_data.info
-
-        # Normalize column names
-        info = {to_snake_case(k): v for k, v in info.items()}
-
-        # Define keys for splitting
-        info_keys = {'symbol', 'short_name', 'long_name', 'uuid', 'address1', 'address2', 'fax',
-                     'city', 'state', 'zip', 'country', 'phone', 'website',
-                     'industry', 'industry_key', 'industry_disp', 'sector', 'sector_key',
-                     'sector_disp', 'long_business_summary', 'full_time_employees', 'ir_website',
-                     'company_officers'}
-
-        # Split the info based on keys
-        non_changeable_info = {k: v for k, v in info.items() if k in info_keys}
-        changeable_info = {k: v for k, v in info.items() if k not in info_keys}
-
-        # Create DataFrames
-        info_df = pd.DataFrame([non_changeable_info])
-        stats_df = pd.DataFrame([changeable_info])
-
-        # Add ticker column
-        info_df['ticker'] = self.ticker
-        stats_df['ticker'] = self.ticker
-
-        return info_df, stats_df
 
 
 def fetch_data_from_db(statement_table, ticker, date=None) -> pd.DataFrame:
