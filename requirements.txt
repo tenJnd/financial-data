@@ -3,6 +3,7 @@ lxml
 numpy==2.0.0
 requests==2.32.3
 requests-cache==1.2.1
+requests-ratelimiter==0.7.0
 pyrate-limiter==2.10.0
 sqlalchemy==2.0.31
 yfinance==0.2.41
