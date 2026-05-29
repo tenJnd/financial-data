@@ -128,3 +128,10 @@ dmypy.json
 
 notebooks/
 alerts/
+
+# Hermes agent persona / briefing — kept local, not part of the MCP image
+HERMES_AGENT_INSTRUCTIONS.md
+
+# yfinance HTTP cache (SQLite) generated at runtime
+yfinance.cache
+**/yfinance.cache

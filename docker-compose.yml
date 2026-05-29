@@ -1,14 +1,11 @@
-version: "3"
 services:
-  trading-bot:
+  hermes-tools:
     image: tenjnd/financial-data:latest
+    build: .
     env_file:
-      - .env
-    network_mode: "host"
-    volumes:
-      - trading-data-volume:/app/trading_data
-    entrypoint: ["python"]
-    command: ["src/cli.py", "financial-data"]
-
-volumes:
-  trading-data-volume:
+      - prod.env
+    # SSE mode exposes the MCP server over HTTP on :8000.
+    # For stdio integration, drop `command` and `ports` and run via `docker run -i`.
+    command: ["--transport", "sse"]
+    ports:
+      - "8000:8000"
